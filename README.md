@@ -1,16 +1,23 @@
-[![Build Status](https://jenkins.public.jamf.build/buildStatus/icon?job=Devops%2FBuild+Infrastructure%2FGitlab%2Fgitlab-exporter-github%2Fmaster)](https://jenkins.jamf.build/job/Devops/job/Build%20Infrastructure/job/Gitlab/job/gitlab-exporter-github/job/master/)
 
-# Gitlab license exporter
+
+# Gitlab license Prometheus exporter
 Exposes License expiration date and active users from the Gitlab API, to a Prometheus compatible endpoint.
+Based on (gitlab_license_exporter)[https://github.com/jamf/gitlab_license_exporter] which was archived by the company who own it.
 
-## Configuration
-This exporter is setup to take input from environment variables:
+## Parameters
+This exporter is setup to take input from these required environment variables:
+* `TOKEN`: Gitlab Admin API token (License is only exposed to administrators)
+* `URL`: Gitlab URL (ex. `https://gitlab.com`)
 
-### Required
-* `TOKEN`: Admin token
+## Metrics
+Metrics will be available on port 9090
 
-### Optional
-* `URL`: Gitlab url example: `https://gitlab.domain.com` (by default will use k8s service `gitlab-web`)
+| Name                      | Type  | Help                                                   |
+| ------------------------- | ----- | ------------------------------------------------------ |
+| gitlab_active_users       | gauge | Gitlab active users                                    |
+| gitlab_license_expires_at | gauge | Gitlab expiration day                                  |
+| gitlab_scrape_success     | gauge | Gitlab exporter scrape status when try to read the API |
+| gitlab_user_limit         | gauge | Users allowed by license                               |
 
 ## Build and run
 ### Manually
@@ -18,10 +25,10 @@ This exporter is setup to take input from environment variables:
 go get
 go build gitlabgoexporter.go
 export TOKEN=token123token
-export URL=https://gitlab.domain.com
+export URL=https://gitlab.com
 ./gitlabgoexporter.go
 ```
-Visit http://localhost:2222
+Visit http://localhost:9090
 
 
 ### Docker
@@ -34,7 +41,6 @@ Run:
 
 * Kubernetes Gitlab-Web service:
 	`docker image --env TOKEN=token123token <image-name>`
-
 
 ### Kubernetes
 ```
@@ -113,15 +119,4 @@ spec:
   - port: metrics
     path: /
     interval: 30s
-```
-
-## Metrics
-Metrics will be available on port 2222 by default
-
-## Collectors
-```
-# HELP gitlab_active_users Gitlab active users
-# HELP gitlab_license_expires_at Gitlab expiration day
-# HELP gitlab_scrape_success Gitlab go exporter scrape status when try to read the API
-# HELP gitlab_user_limit Users allowed by license
 ```
